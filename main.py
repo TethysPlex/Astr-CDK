@@ -39,9 +39,19 @@ class CdkDistributor(Star):
     async def cdk(self, event: AstrMessageEvent):
         parts = event.message_str.strip().split()
         if len(parts) < 2:
-            yield event.plain_result("用法: /cdk <new|add|config|details|claim> ...")
+            yield event.plain_result("用法: /cdk <new|add|config|details|claim|help> ...")
             return
         sub = parts[1]
+        if sub == "help":
+            yield event.plain_result(
+                "CDK命令用法:\n"
+                "/cdk new <cdk_id> <raw_url> [allow_duplicate] [shuffle] [overwrite] [max_per_user] [name]\n"
+                "/cdk add <cdk_id> <raw_url> [shuffle] [overwrite]\n"
+                "/cdk config <cdk_id> [allow_duplicate] [max_per_user] [name]\n"
+                "/cdk details <cdk_id>\n"
+                "/cdk claim <cdk_id> [num]"
+            )
+            return
         if sub == "claim":
             async for res in self.claim(event):
                 yield res
@@ -51,13 +61,17 @@ class CdkDistributor(Star):
             return
         async with self._lock:
             if sub == "new":
-                await self._cmd_new(event, parts[2:])
+                async for res in self._cmd_new(event, parts[2:]):
+                    yield res
             elif sub == "add":
-                await self._cmd_add(event, parts[2:])
+                async for res in self._cmd_add(event, parts[2:]):
+                    yield res
             elif sub == "config":
-                await self._cmd_config(event, parts[2:])
+                async for res in self._cmd_config(event, parts[2:]):
+                    yield res
             elif sub == "details":
-                await self._cmd_details(event, parts[2:])
+                async for res in self._cmd_details(event, parts[2:]):
+                    yield res
             else:
                 yield event.plain_result(f"未知子指令: {sub}")
             self._save_data()
