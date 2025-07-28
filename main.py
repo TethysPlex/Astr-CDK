@@ -182,6 +182,9 @@ class CdkDistributor(Star):
         if len(parts) < 2:
             yield event.plain_result("用法: /claim <cdk_id> [num]")
             return
+        if not event.is_private_chat():
+            yield event.plain_result("请私聊使用 /claim 指令，CDK已在私聊发送。")
+            return
         cdk_id = parts[1]
         num = int(parts[2]) if len(parts) > 2 else 1
         async with self._lock:
@@ -209,5 +212,5 @@ class CdkDistributor(Star):
                 item["time"] = datetime.utcnow().isoformat()
             info["user_records"][user] = record + take
             self._save_data()
-        for code in codes:
-            yield event.plain_result(f"您的CDK: {code}")
+        message = f"CDK {cdk_id}:\n" + "\n".join(codes)
+        yield event.plain_result(message)
