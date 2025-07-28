@@ -194,7 +194,7 @@ class CdkDistributor(Star):
             if not unused_items:
                 yield event.plain_result("CDK已领完。")
                 return
-            user = str(event.sender.qq) if hasattr(event.sender, "qq") else event.get_sender_name()
+            user = event.get_sender_id()
             record = info["user_records"].get(user, 0)
             if record >= info["max_per_user"] and not info["allow_duplicate"]:
                 yield event.plain_result("您已达到领取上限。")
